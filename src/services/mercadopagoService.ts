@@ -7,13 +7,13 @@ interface CheckoutData {
 
 export const mercadopagoService = {
     createPreference: async (data: CheckoutData): Promise<string> => {
-        console.log('Solicitando Preferência de Pagamento ao Backend local...', data);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
         try {
-            // Usa o endpoint /api/create_preference para suportar serverless na Vercel
             const apiUrl = import.meta.env.PROD
                 ? '/api/create_preference'
-                : 'http://localhost:3000/api/create_preference'; // Mantém compatibilidade local com dev:backend
+                : 'http://localhost:3000/api/create_preference';
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -21,15 +21,29 @@ export const mercadopagoService = {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data),
+                signal: controller.signal
             });
 
+            clearTimeout(timeoutId);
+
             if (!response.ok) {
-                throw new Error('Falha ao criar preferência do Mercado Pago');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Erro ao processar checkout');
             }
 
             const result = await response.json();
+
+            if (!result.id) {
+                throw new Error('ID de preferência não retornado pelo servidor');
+            }
+
             return result.id;
-        } catch (error) {
+        } catch (error: unknown) {
+            clearTimeout(timeoutId);
+            if (error instanceof Error && error.name === 'AbortError') {
+                console.error('Checkout request timed out');
+                throw new Error('A requisição demorou muito. Tente novamente.');
+            }
             console.error('Erro ao chamar o checkout na API:', error);
             throw error;
         }

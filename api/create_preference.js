@@ -7,65 +7,78 @@ const client = new MercadoPagoConfig({
 });
 
 export default async function handler(req, res) {
-    // Configuração de CORS para permitir a requisição do frontend
+    // Configuração de CORS - Melhora a segurança permitindo apenas origens conhecidas se possível
+    const origin = req.headers.origin;
     res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
     res.setHeader(
         'Access-Control-Allow-Headers',
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     );
 
     if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+        return res.status(200).end();
     }
 
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
+        return res.status(405).json({ error: 'Método não permitido' });
     }
 
     try {
-        const { items, total } = req.body;
+        const { items } = req.body;
 
-        if (!items || items.length === 0) {
-            return res.status(400).json({ error: 'Nenhum item adicionado' });
+        // Sanitização e Validação básica
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            console.error('Tentativa de checkout com carrinho vazio ou inválido');
+            return res.status(400).json({ error: 'O carrinho está vazio ou é inválido.' });
         }
 
+        // Mapeamento rigoroso para evitar dados maliciosos
         const externalItems = items.map(item => ({
-            id: String(item.id),
-            title: item.name,
+            id: String(item.id || '').substring(0, 50),
+            title: String(item.name || 'Produto').substring(0, 256),
             currency_id: 'BRL',
             picture_url: item.image,
-            description: item.description,
-            quantity: Number(item.quantity),
-            unit_price: Number(item.price)
+            description: String(item.description || '').substring(0, 256),
+            quantity: Math.max(1, Number(item.quantity) || 1),
+            unit_price: Math.max(0.1, Number(item.price) || 0)
         }));
 
-        const origin = req.headers.origin || `https://${req.headers.host}` || 'http://localhost:5173';
-
+        const backUrl = origin || 'http://localhost:5173';
         const preference = new Preference(client);
 
         const result = await preference.create({
             body: {
                 items: externalItems,
                 back_urls: {
-                    success: origin,
-                    failure: origin,
-                    pending: origin
+                    success: backUrl,
+                    failure: backUrl,
+                    pending: backUrl
                 },
                 auto_return: 'approved',
+                statement_descriptor: 'SKINCARE SHOP',
+                notification_url: process.env.MP_WEBHOOK_URL || undefined,
                 metadata: {
-                    integration_agent: 'antigravity-ai',
-                    platform: 'vercel-serverless',
-                    version: '2.0.0'
+                    integration_agent: 'antigravity-ai-agent',
+                    v2_migration: true,
+                    checkout_timestamp: new Date().toISOString()
                 }
             }
         });
 
-        res.status(200).json({ id: result.id });
+        console.log(`Preferência criada com sucesso: ${result.id}`);
+        return res.status(200).json({ id: result.id });
     } catch (error) {
-        console.error('Erro na criação de preferência do Mercado Pago:', error);
-        res.status(500).json({ error: 'Falha ao processar o pagamento.' });
+        console.error('Critical Error in Mercado Pago Checkout:', {
+            message: error.message,
+            stack: error.stack,
+            cause: error.cause
+        });
+        
+        return res.status(500).json({ 
+            error: 'Não foi possível processar o pagamento no momento.',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 }

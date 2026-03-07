@@ -13,21 +13,26 @@ export const CheckoutButton = () => {
     const { items, subtotal } = useCart();
     const [preferenceId, setPreferenceId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
 
     // Assim que o componente montar ou itens do carrinho mudarem, 
-    // nós pedimos uma nova preferência para o nosso backend fictício no Supabase
+    // nós pedimos uma nova preferência para o nosso backend
     useEffect(() => {
         if (items.length > 0) {
             const fetchPreference = async () => {
                 setIsLoading(true);
+                setError(null);
                 try {
                     const id = await mercadopagoService.createPreference({
                         items,
                         total: subtotal
                     });
                     setPreferenceId(id);
-                } catch (error) {
-                    console.error("Erro ao configurar checkout do MP:", error);
+                } catch (err: unknown) {
+                    const errorMessage = err instanceof Error ? err.message : 'Erro inesperado ao configurar pagamento';
+                    console.error("Erro ao configurar checkout do MP:", err);
+                    setError(errorMessage);
                 } finally {
                     setIsLoading(false);
                 }
@@ -36,8 +41,9 @@ export const CheckoutButton = () => {
             fetchPreference();
         } else {
             setPreferenceId(null);
+            setError(null);
         }
-    }, [items, subtotal]);
+    }, [items, subtotal, retryCount]);
 
     if (items.length === 0) {
         return (
@@ -71,6 +77,19 @@ export const CheckoutButton = () => {
                         onSubmit={async () => console.log('Checkout disparado')}
                         onReady={() => console.log('Wallet MP Carregada')}
                     />
+                </div>
+            ) : error ? (
+                <div className="flex flex-col gap-2">
+                    <button
+                        onClick={() => {
+                            setError(null);
+                            setRetryCount(prev => prev + 1);
+                        }}
+                        className="w-full h-16 bg-red-100 text-red-600 rounded-2xl font-bold flex items-center justify-center hover:bg-red-200 transition-colors"
+                    >
+                        Tentar Novamente
+                    </button>
+                    <p className="text-xs text-red-500 text-center px-2">{error}</p>
                 </div>
             ) : (
                 <button

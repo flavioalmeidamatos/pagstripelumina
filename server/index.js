@@ -26,34 +26,57 @@ app.post('/api/create_preference', async (req, res) => {
     try {
         const { items } = req.body;
 
-        // items from frontend are CartItems: { id, name, price, quantity, ... }
+        // Validação e Sanitização local
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ error: 'Carrinho vazio ou inválido' });
+        }
+
+        // Mapeamento rigoroso seguindo o padrão da API principal
         const externalItems = items.map(item => ({
-            id: item.id,
-            title: item.name,
+            id: String(item.id || '').substring(0, 50),
+            title: String(item.name || 'Produto').substring(0, 256),
             currency_id: 'BRL',
             picture_url: item.image,
-            description: item.description,
+            description: String(item.description || '').substring(0, 256),
             category_id: item.category,
-            quantity: item.quantity,
-            unit_price: Number(item.price)
+            quantity: Math.max(1, Number(item.quantity) || 1),
+            unit_price: Math.max(0.1, Number(item.price) || 0)
         }));
 
         const preference = new Preference(client);
+
+        // Origem dinâmica para redirecionamentos locais
+        const origin = req.headers.origin || 'http://localhost:5173';
+
         const result = await preference.create({
             body: {
                 items: externalItems,
                 back_urls: {
-                    success: 'http://localhost:5173',
-                    failure: 'http://localhost:5173',
-                    pending: 'http://localhost:5173'
+                    success: origin,
+                    failure: origin,
+                    pending: origin
+                },
+                auto_return: 'approved',
+                statement_descriptor: 'SKINCARE SHOP',
+                metadata: {
+                    integration_agent: 'antigravity-ai-local',
+                    runtime: 'express-local-dev',
+                    v2_migration: true
                 }
             }
         });
 
+        console.log(`[Local] Preferência Gerada: ${result.id}`);
         res.json({ id: result.id });
     } catch (error) {
-        console.error('Error creating preference:', error);
-        res.status(500).json({ error: 'Erro ao criar preferência de pagamento' });
+        console.error('[Express] Erro ao criar preferência:', {
+            message: error.message,
+            stack: error.stack
+        });
+        res.status(500).json({
+            error: 'Erro local ao criar preferência de pagamento',
+            details: error.message
+        });
     }
 });
 
