@@ -6,6 +6,7 @@ import { ProductDetails } from './components/ProductDetails';
 import { CartDrawer } from './components/CartDrawer';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { CookieConsent } from './components/CookieConsent';
 import type { Product } from './types/product';
 import { motion } from 'framer-motion';
 
@@ -30,7 +31,7 @@ const StoreContent = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight"
+            className="text-4xl md:text-5xl lg:text-7xl font-black text-gray-900 tracking-tight leading-tight"
           >
             Produtos em Destaque
           </motion.h1>
@@ -38,7 +39,7 @@ const StoreContent = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-6 text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed"
+            className="mt-6 text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed"
           >
             Descubra o cuidado avançado com fórmulas inovadoras para iluminar, firmar e renovar sua pele todos os dias.
           </motion.p>
@@ -55,13 +56,13 @@ const StoreContent = () => {
             <div className="relative z-10">
               <h3 className="text-3xl font-bold text-white mb-4">Nova Linha Retinol</h3>
               <p className="text-gray-400 mb-8 max-w-xs">Redução visível de rugas e uniformização da textura em 2 semanas.</p>
-              <button className="px-8 py-3 bg-white text-gray-900 rounded-full font-bold hover:bg-gray-100 transition-colors cursor-pointer">Saiba Mais</button>
+              <button className="px-6 py-2.5 bg-white text-gray-900 rounded-full text-sm font-bold shadow-sm hover:shadow-md hover:bg-gray-100 transition-all cursor-pointer">Saiba Mais</button>
             </div>
           </div>
           <div className="bg-rose-100 rounded-[40px] p-12 flex flex-col justify-end">
             <h3 className="text-3xl font-bold text-gray-900 mb-2">Cuide da sua barreira</h3>
             <p className="text-rose-700/70 mb-8">Pantenol e Ceramidas para hidratação profunda e reparação imediata.</p>
-            <button className="px-8 py-3 bg-gray-900 text-white rounded-full font-bold hover:bg-gray-800 transition-colors w-fit cursor-pointer">Ver Kit Completo</button>
+            <button className="px-6 py-2.5 bg-gray-900 text-white rounded-full text-sm font-bold shadow-sm hover:shadow-md hover:bg-gray-800 transition-all w-fit cursor-pointer">Ver Kit Completo</button>
           </div>
         </div>
       </main>
@@ -77,6 +78,8 @@ const StoreContent = () => {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
       />
+
+      <CookieConsent />
     </div>
   );
 };

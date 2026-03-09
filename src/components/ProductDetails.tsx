@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Product } from '../types/product';
 import { useCart } from '../hooks/useCart';
@@ -10,6 +11,17 @@ interface ProductDetailsProps {
 
 export const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onClose }) => {
     const { addItem } = useCart();
+
+    useEffect(() => {
+        if (product) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [product]);
 
     return (
         <AnimatePresence>
@@ -60,8 +72,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onClose
                                     </p>
                                 </div>
 
-                                <div className="mt-12 flex items-center justify-between">
-                                    <div className="text-3xl font-bold text-gray-900">
+                                <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-6">
+                                    <div className="text-3xl font-bold text-gray-900 self-start sm:self-auto">
                                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
                                     </div>
                                     <motion.button
@@ -70,10 +82,10 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onClose
                                             addItem(product);
                                             onClose();
                                         }}
-                                        className="flex items-center gap-3 rounded-2xl bg-gray-900 px-8 py-4 text-white shadow-xl shadow-gray-200 transition-all hover:bg-gray-800 cursor-pointer"
+                                        className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-full bg-gray-900 px-6 py-2.5 text-[13px] font-bold uppercase tracking-wider text-white shadow-md transition-all hover:shadow-lg hover:bg-gray-800 cursor-pointer whitespace-nowrap"
                                     >
-                                        <ShoppingBag size={20} />
-                                        <span>Adicionar ao Carrinho</span>
+                                        <ShoppingBag size={16} />
+                                        <span>Adicionar</span>
                                     </motion.button>
                                 </div>
                             </div>
