@@ -55,8 +55,11 @@ app.post('/api/create_preference', async (req, res) => {
             body: {
                 items: externalItems,
                 payer: {
-                    email: "cliente.teste@sandbox.mercadopago.com.br",
-                    name: "Cliente Teste"
+                    email: "test_user_196537335@testuser.com",
+                    identification: {
+                        type: "CPF",
+                        number: "19100000000"
+                    }
                 },
                 back_urls: {
                     success: backUrl,
