@@ -39,13 +39,13 @@ export async function createMPPreference(accessToken, items, backUrl, notificati
 
     const body = {
         items: externalItems,
-        payer: {
-            email: "test_user_196537335@testuser.com", // Keeping test_user as in previous code
-            identification: {
-                type: "CPF",
-                number: "19100000000"
-            }
-        },
+        // payer: {
+        //     email: "test_user_196537335@testuser.com", // Keeping test_user as in previous code
+        //     identification: {
+        //         type: "CPF",
+        //         number: "19100000000"
+        //     }
+        // },
         back_urls: {
             success: backUrl,
             failure: backUrl,
