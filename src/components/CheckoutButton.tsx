@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import { mercadopagoService, type PixPaymentResponse } from '../services/mercadopagoService';
 import { useCart } from '../hooks/useCart';
 
@@ -168,16 +168,40 @@ export const CheckoutButton = () => {
                                 </div>
                             )}
                             <div className="w-full">
-                                <Wallet
+                                <Payment
                                     initialization={{
-                                        preferenceId: walletPreferenceId,
-                                        redirectMode: 'self'
+                                        amount: subtotal,
+                                        preferenceId: walletPreferenceId
+                                    }}
+                                    customization={{
+                                        paymentMethods: {
+                                            creditCard: 'all',
+                                            debitCard: 'all',
+                                            ticket: 'all',
+                                            bankTransfer: 'all',
+                                            mercadoPago: 'all',
+                                        },
+                                        visual: {
+                                            hideRedirectionPanel: false,
+                                            style: {
+                                                theme: 'default',
+                                            },
+                                        },
+                                    }}
+                                    locale="pt"
+                                    onSubmit={async ({ formData }) => {
+                                        await mercadopagoService.processBrickPayment({
+                                            items,
+                                            total: subtotal,
+                                            formData,
+                                            payerEmail: typeof formData?.payer?.email === 'string' ? formData.payer.email : undefined,
+                                        });
                                     }}
                                     onReady={() => setIsWalletReady(true)}
-                                    onError={(walletError: unknown) => {
-                                        console.error('Erro ao carregar Wallet Mercado Pago:', walletError);
+                                    onError={(brickError: unknown) => {
+                                        console.error('Erro ao carregar Payment Brick Mercado Pago:', brickError);
                                         setIsWalletReady(true);
-                                        setError('O checkout do Mercado Pago não carregou corretamente. Tente novamente.');
+                                        setError('As opções do Mercado Pago não carregaram corretamente. Tente novamente.');
                                     }}
                                 />
                             </div>

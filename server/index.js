@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createPixPayment, getOrderStatus, processMercadoPagoWebhook } from './pix_service.js';
+import { createBrickPayment, createPixPayment, getOrderStatus, processMercadoPagoWebhook } from './pix_service.js';
 import { getMercadoPagoAccessToken, getRequestBaseUrl, readEnv } from './env.js';
 import { createMPPreference, validateCheckoutPayload } from './mp_common.js';
 
@@ -59,6 +59,29 @@ app.post('/api/create_preference', async (req, res) => {
                 ? error.message
                 : 'Erro local ao criar pagamento PIX',
             details: error.message
+        });
+    }
+});
+
+app.post('/api/process_payment', async (req, res) => {
+    try {
+        const result = await createBrickPayment({
+            req,
+            payload: req.body
+        });
+        return res.json(result);
+    } catch (error) {
+        const statusCode = error.message?.includes('inválido') || error.message?.includes('obrigatório')
+            ? 400
+            : 500;
+
+        console.error('[Express] Erro ao processar pagamento do Brick:', {
+            message: error.message,
+            stack: error.stack
+        });
+
+        return res.status(statusCode).json({
+            error: statusCode === 400 ? error.message : 'Erro ao processar pagamento'
         });
     }
 });

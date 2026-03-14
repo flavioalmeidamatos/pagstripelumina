@@ -12,6 +12,13 @@ interface WalletCheckoutData {
     checkoutMode: 'wallet';
 }
 
+interface BrickPaymentPayload {
+    items: CartItem[];
+    total: number;
+    formData: unknown;
+    payerEmail?: string;
+}
+
 export interface PixPaymentResponse {
     orderId: string;
     paymentId: string | number | null;
@@ -119,6 +126,27 @@ export const mercadopagoService = {
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || 'Erro ao consultar pedido PIX');
+        }
+
+        return response.json();
+    },
+
+    processBrickPayment: async (data: BrickPaymentPayload): Promise<{ orderId: string; paymentId: number | null; status: string }> => {
+        const apiUrl = import.meta.env.PROD
+            ? '/api/process_payment'
+            : 'http://localhost:3000/api/process_payment';
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Erro ao processar pagamento Mercado Pago');
         }
 
         return response.json();

@@ -74,6 +74,88 @@ export async function createPixPayment({ req, payload }) {
     return toPixResponse(updatedOrder);
 }
 
+export async function createBrickPayment({ req, payload }) {
+    const { items, total } = validateCheckoutPayload(payload);
+    const formData = payload?.formData;
+    const payerEmail = String(formData?.payer?.email || payload?.payerEmail || '').trim().toLowerCase();
+
+    if (!formData || typeof formData !== 'object') {
+        throw new Error('Dados do Payment Brick inválidos.');
+    }
+
+    if (!payerEmail) {
+        throw new Error('E-mail do pagador é obrigatório.');
+    }
+
+    const orderId = crypto.randomUUID();
+    const paymentClient = new Payment(getMPClient(getMercadoPagoAccessToken()));
+    const notificationUrl = getWebhookUrl(req);
+    const description = buildDescription(items);
+
+    console.info('[BRICK] Criando pedido pendente no Supabase', {
+        orderId,
+        total,
+        paymentMethod: formData.payment_method_id || 'unknown'
+    });
+
+    await createOrderRecord({
+        id: orderId,
+        external_reference: orderId,
+        order_status: 'pending',
+        payment_method: normalizePaymentMethod(formData.payment_method_id),
+        customer_email: payerEmail,
+        description,
+        transaction_amount: total,
+        items
+    });
+
+    const body = {
+        ...formData,
+        transaction_amount: total,
+        description,
+        external_reference: orderId,
+        notification_url: notificationUrl || undefined,
+        additional_info: {
+            ...(formData.additional_info || {}),
+            items: items.map((item) => ({
+                id: item.id,
+                title: item.title,
+                description: item.description,
+                picture_url: item.picture_url,
+                category_id: item.category_id,
+                quantity: item.quantity,
+                unit_price: item.unit_price
+            }))
+        },
+        metadata: {
+            ...(formData.metadata || {}),
+            order_id: orderId,
+            payment_flow: 'payment_brick'
+        }
+    };
+
+    try {
+        const payment = await paymentClient.create({ body });
+        const updatedOrder = await updateOrderAfterPaymentCreation(orderId, payment, notificationUrl);
+
+        console.info('[BRICK] Pagamento criado via Payment Brick', {
+            orderId,
+            paymentId: payment.id,
+            status: payment.status,
+            paymentMethod: payment.payment_method_id
+        });
+
+        return {
+            orderId: updatedOrder.id,
+            paymentId: updatedOrder.mercadopago_payment_id,
+            status: updatedOrder.order_status
+        };
+    } catch (error) {
+        await markOrderAsFailed(orderId, error instanceof Error ? error.message : 'Falha ao criar pagamento no Mercado Pago');
+        throw error;
+    }
+}
+
 export async function getOrderStatus(orderId) {
     const order = await getOrderById(orderId);
 
@@ -271,4 +353,8 @@ function toPixResponse(order) {
         expiresAt: order.payment_expiration_at,
         amount: order.transaction_amount
     };
+}
+
+function normalizePaymentMethod(paymentMethodId) {
+    return String(paymentMethodId || 'mercado_pago').substring(0, 50);
 }
