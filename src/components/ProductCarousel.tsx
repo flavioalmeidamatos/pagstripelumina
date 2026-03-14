@@ -23,7 +23,7 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, onSe
 
     return (
         <div className="relative group">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+            <div className="absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 opacity-100 transition-opacity md:block md:opacity-0 md:group-hover:opacity-100">
                 <button
                     onClick={() => scroll('left')}
                     className="p-3 bg-white/80 backdrop-blur-md rounded-full shadow-lg hover:bg-white text-gray-900 ml-4 cursor-pointer"
@@ -34,7 +34,7 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, onSe
 
             <motion.div
                 ref={containerRef}
-                className="flex gap-8 overflow-x-auto px-8 py-12 no-scrollbar cursor-grab active:cursor-grabbing scroll-smooth"
+                className="flex gap-4 overflow-x-auto px-4 py-8 no-scrollbar cursor-grab active:cursor-grabbing scroll-smooth sm:gap-6 sm:px-6 sm:py-10 md:gap-8 md:px-8 md:py-12"
             >
                 {products.map((product) => (
                     <ProductCard
@@ -46,7 +46,7 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, onSe
                 ))}
             </motion.div>
 
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+            <div className="absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 opacity-100 transition-opacity md:block md:opacity-0 md:group-hover:opacity-100">
                 <button
                     onClick={() => scroll('right')}
                     className="p-3 bg-white/80 backdrop-blur-md rounded-full shadow-lg hover:bg-white text-gray-900 mr-4 cursor-pointer"

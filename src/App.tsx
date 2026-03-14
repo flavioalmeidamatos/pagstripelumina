@@ -18,12 +18,12 @@ const StoreContent = () => {
     <div className="min-h-screen bg-[#FAFAFA]">
       <Header onCartOpen={() => setIsCartOpen(true)} />
 
-      <main className="max-w-7xl mx-auto py-16 px-8">
-        <div className="text-center mb-16">
+      <main className="max-w-7xl mx-auto px-4 py-10 sm:px-6 sm:py-12 md:px-8 md:py-16">
+        <div className="text-center mb-12 sm:mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-block px-4 py-1 rounded-full bg-rose-50 text-rose-500 text-xs font-bold uppercase tracking-widest mb-4"
+            className="mb-3 inline-block rounded-full bg-rose-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-rose-500 sm:mb-4 sm:px-4 sm:text-xs sm:tracking-widest"
           >
             Coleção Botik & Cica
           </motion.div>
@@ -31,7 +31,7 @@ const StoreContent = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl lg:text-7xl font-black text-gray-900 tracking-tight leading-tight"
+            className="text-3xl font-black leading-[1.05] tracking-tight text-gray-900 sm:text-4xl md:text-5xl lg:text-7xl"
           >
             Produtos em Destaque
           </motion.h1>
@@ -39,7 +39,7 @@ const StoreContent = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-6 text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed"
+            className="mx-auto mt-4 max-w-xl px-2 text-sm leading-relaxed text-gray-500 sm:mt-6 sm:max-w-2xl sm:px-0 sm:text-lg md:text-xl"
           >
             Descubra o cuidado avançado com fórmulas inovadoras para iluminar, firmar e renovar sua pele todos os dias.
           </motion.p>
