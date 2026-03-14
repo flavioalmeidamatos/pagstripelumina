@@ -6,6 +6,12 @@ interface PixCheckoutData {
     payerEmail: string;
 }
 
+interface WalletCheckoutData {
+    items: CartItem[];
+    total: number;
+    checkoutMode: 'wallet';
+}
+
 export interface PixPaymentResponse {
     orderId: string;
     paymentId: string | number | null;
@@ -20,6 +26,48 @@ export interface PixPaymentResponse {
 }
 
 export const mercadopagoService = {
+    createWalletPreference: async (data: WalletCheckoutData): Promise<string> => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        try {
+            const apiUrl = import.meta.env.PROD
+                ? '/api/create_preference'
+                : 'http://localhost:3000/api/create_preference';
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Erro ao processar checkout Mercado Pago');
+            }
+
+            const result = await response.json();
+
+            if (!result.id) {
+                throw new Error('ID de preferência não retornado pelo servidor');
+            }
+
+            return result.id as string;
+        } catch (error: unknown) {
+            clearTimeout(timeoutId);
+            if (error instanceof Error && error.name === 'AbortError') {
+                throw new Error('A requisição do checkout demorou muito. Tente novamente.');
+            }
+            console.error('Erro ao chamar a API do checkout Mercado Pago:', error);
+            throw error;
+        }
+    },
+
     createPixPayment: async (data: PixCheckoutData): Promise<PixPaymentResponse> => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);

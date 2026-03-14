@@ -1,4 +1,6 @@
 import { createPixPayment } from '../server/pix_service.js';
+import { createMPPreference, validateCheckoutPayload } from '../server/mp_common.js';
+import { getMercadoPagoAccessToken, getRequestBaseUrl, readEnv } from '../server/env.js';
 
 export default async function handler(req, res) {
     const origin = req.headers.origin;
@@ -19,6 +21,20 @@ export default async function handler(req, res) {
     }
 
     try {
+        if (req.body?.checkoutMode === 'wallet') {
+            const { items } = validateCheckoutPayload(req.body);
+            const baseUrl = getRequestBaseUrl(req, 'http://localhost:5173');
+            const webhookUrl = readEnv(['MERCADOPAGO_WEBHOOK_URL', 'MP_WEBHOOK_URL']);
+            const result = await createMPPreference(
+                getMercadoPagoAccessToken(),
+                items,
+                baseUrl,
+                webhookUrl || null
+            );
+
+            return res.status(200).json({ id: result.id });
+        }
+
         const result = await createPixPayment({
             req,
             payload: req.body

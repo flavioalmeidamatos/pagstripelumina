@@ -4,7 +4,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createPixPayment, getOrderStatus, processMercadoPagoWebhook } from './pix_service.js';
-import { getMercadoPagoAccessToken } from './env.js';
+import { getMercadoPagoAccessToken, getRequestBaseUrl, readEnv } from './env.js';
+import { createMPPreference, validateCheckoutPayload } from './mp_common.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +25,20 @@ try {
 
 app.post('/api/create_preference', async (req, res) => {
     try {
+        if (req.body?.checkoutMode === 'wallet') {
+            const { items } = validateCheckoutPayload(req.body);
+            const baseUrl = getRequestBaseUrl(req, 'http://localhost:5173');
+            const webhookUrl = readEnv(['MERCADOPAGO_WEBHOOK_URL', 'MP_WEBHOOK_URL']);
+            const result = await createMPPreference(
+                getMercadoPagoAccessToken(),
+                items,
+                baseUrl,
+                webhookUrl || null
+            );
+
+            return res.json({ id: result.id });
+        }
+
         const result = await createPixPayment({
             req,
             payload: req.body
