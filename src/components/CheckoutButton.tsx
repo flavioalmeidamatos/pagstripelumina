@@ -21,18 +21,39 @@ export const CheckoutButton = () => {
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [isWalletReady, setIsWalletReady] = useState(false);
+    const [preferenceId, setPreferenceId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (paymentMode !== 'wallet') {
+        if (paymentMode !== 'wallet' || items.length === 0) {
+            setPreferenceId(null);
+            setIsWalletReady(false);
             return;
         }
+
+        const createPreference = async () => {
+            try {
+                setError(null);
+                const id = await mercadopagoService.createWalletPreference({
+                    items,
+                    total: subtotal,
+                    checkoutMode: 'wallet'
+                });
+                setPreferenceId(id);
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error ? err.message : 'Erro ao criar preferência de pagamento';
+                setError(errorMessage);
+                setIsWalletReady(true); // Allow fallback
+            }
+        };
+
+        createPreference();
 
         const fallbackTimer = window.setTimeout(() => {
             setIsWalletReady(true);
         }, 2500);
 
         return () => window.clearTimeout(fallbackTimer);
-    }, [paymentMode]);
+    }, [paymentMode, items, subtotal]);
 
     useEffect(() => {
         if (!pixPayment || pixPayment.status !== 'pending') {
@@ -56,6 +77,7 @@ export const CheckoutButton = () => {
         setIsWalletReady(false);
         setError(null);
         setCopied(false);
+        setPreferenceId(null);
     }, [items, subtotal]);
 
     if (items.length === 0) {
@@ -119,6 +141,7 @@ export const CheckoutButton = () => {
                             <Payment
                                 initialization={{
                                     amount: subtotal,
+                                    preferenceId: preferenceId || undefined,
                                 }}
                                 customization={{
                                     paymentMethods: {
@@ -153,6 +176,11 @@ export const CheckoutButton = () => {
                             />
                         </div>
                     </div>
+                    {error && (
+                        <div className="mt-2 text-center text-sm text-red-600">
+                            {error}
+                        </div>
+                    )}
                 </>
             )}
 
