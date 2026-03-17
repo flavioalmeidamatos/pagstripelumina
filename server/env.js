@@ -34,8 +34,17 @@ export function hasSupabaseAdminConfig() {
     return Boolean(url && secretKey);
 }
 
+export function getMercadoPagoEnvironment() {
+    const mode = readEnv(['MP_ENV', 'MERCADOPAGO_ENV', 'VITE_MP_ENV']).toLowerCase();
+    return mode === 'sandbox' ? 'sandbox' : 'production';
+}
+
 export function getMercadoPagoAccessToken() {
-    return readEnv(['MERCADOPAGO_ACCESS_TOKEN', 'MP_ACCESS_TOKEN'], {
+    const keys = getMercadoPagoEnvironment() === 'sandbox'
+        ? ['MP_TEST_ACCESS_TOKEN', 'MERCADOPAGO_TEST_ACCESS_TOKEN', 'MERCADOPAGO_ACCESS_TOKEN', 'MP_ACCESS_TOKEN']
+        : ['MERCADOPAGO_ACCESS_TOKEN', 'MP_ACCESS_TOKEN', 'MP_TEST_ACCESS_TOKEN', 'MERCADOPAGO_TEST_ACCESS_TOKEN'];
+
+    return readEnv(keys, {
         required: true,
         label: 'Access Token do Mercado Pago'
     });

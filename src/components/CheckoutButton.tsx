@@ -54,7 +54,10 @@ export const CheckoutButton = () => {
     const [preferenceId, setPreferenceId] = useState<string | null>(null);
     const walletBrickRef = useRef<WalletBrickController | null>(null);
     const mercadoPagoRef = useRef<MercadoPagoInstance | null>(null);
-    const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY;
+    const mercadoPagoEnvironment = import.meta.env.VITE_MP_ENV === 'sandbox' ? 'sandbox' : 'production';
+    const publicKey = mercadoPagoEnvironment === 'sandbox'
+        ? import.meta.env.VITE_MP_TEST_PUBLIC_KEY || import.meta.env.VITE_MP_PUBLIC_KEY
+        : import.meta.env.VITE_MP_PUBLIC_KEY || import.meta.env.VITE_MP_TEST_PUBLIC_KEY;
     const formattedSubtotal = new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL',

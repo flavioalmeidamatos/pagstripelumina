@@ -89,10 +89,6 @@ export async function createPreference({ items, payer, back_urls, external_refer
         notification_url,
     };
 
-    if (sanitizedBackUrls.success) {
-        body.auto_return = 'approved';
-    }
-
     console.log('Mercado Pago preference request body:', JSON.stringify(body, null, 2));
     try {
         const response = await preferenceClient.create({ body });
