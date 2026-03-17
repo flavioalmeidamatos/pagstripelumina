@@ -203,9 +203,11 @@ export const CheckoutButton = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     items,
-                    payer: {
-                        email,
-                    },
+                    payer: email.trim()
+                        ? {
+                            email: email.trim(),
+                        }
+                        : {},
                 }),
             });
 
@@ -237,14 +239,14 @@ export const CheckoutButton = () => {
                             Etapa 1
                         </p>
                         <p className="mt-1 text-sm font-semibold text-slate-900">
-                            Informe seu e-mail para receber a confirmação
+                            Gere o checkout para abrir o pagamento
                         </p>
                     </div>
                     <p className="text-sm font-bold text-slate-900">{formattedSubtotal}</p>
                 </div>
 
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                    E-mail do comprador
+                    E-mail do comprador (opcional)
                 </label>
                 <input
                     value={email}
@@ -261,7 +263,7 @@ export const CheckoutButton = () => {
 
                 <button
                     onClick={handleCheckout}
-                    disabled={items.length === 0 || isPreparingCheckout || isRenderingBrick || !email.trim() || !sdkReady}
+                    disabled={items.length === 0 || isPreparingCheckout || isRenderingBrick || !sdkReady}
                     className="mt-4 w-full rounded-2xl bg-blue-600 px-4 py-3.5 text-sm font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                 >
                     {isPreparingCheckout

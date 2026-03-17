@@ -80,10 +80,6 @@ app.post('/api/create_preference', async (req, res) => {
             return res.status(400).json({ error: 'Carrinho vazio.' });
         }
 
-        if (!payer?.email?.trim()) {
-            return res.status(400).json({ error: 'E-mail do comprador é obrigatório.' });
-        }
-
         const baseUrl = getRequestBaseUrl(req, 'http://localhost:5173');
         const externalReference = `order-${Date.now()}-${randomUUID()}`;
         const backUrls = {
