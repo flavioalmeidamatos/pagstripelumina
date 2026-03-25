@@ -2,22 +2,20 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
-import { env, hasSupabaseEnv } from "@/lib/env";
 
 let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = null;
 
 export function createSupabaseBrowserClient() {
-  if (!hasSupabaseEnv()) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";
+
+  if (!supabaseUrl || !supabaseAnonKey) {
     return null;
   }
 
   if (!browserClient) {
-    browserClient = createBrowserClient<Database>(
-      env.supabaseUrl,
-      env.supabaseAnonKey
-    );
+    browserClient = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
   }
 
   return browserClient;
 }
-

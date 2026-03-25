@@ -31,7 +31,7 @@ export function AuthForm() {
 
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -45,7 +45,14 @@ export function AuthForm() {
           throw error;
         }
 
-        toast.success("Conta criada com sucesso. Verifique seu e-mail.");
+        if (data.session) {
+          toast.success("Conta criada com sucesso.");
+          router.push(params.get("next") || "/account");
+          router.refresh();
+        } else {
+          toast.success("Conta criada com sucesso. Faça login para continuar.");
+          setMode("login");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -61,7 +68,21 @@ export function AuthForm() {
         router.refresh();
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Falha de autenticação.");
+      const message =
+        error instanceof Error ? error.message : "Falha de autenticação.";
+
+      if (message.toLowerCase().includes("rate limit")) {
+        toast.error("Muitas tentativas em sequência. Aguarde um instante e tente novamente.");
+        return;
+      }
+
+      if (message.toLowerCase().includes("already registered")) {
+        toast.error("Este e-mail já está cadastrado. Tente entrar na sua conta.");
+        setMode("login");
+        return;
+      }
+
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -134,4 +155,3 @@ export function AuthForm() {
     </Card>
   );
 }
-
