@@ -1,24 +1,29 @@
-# cadclientes
+# Lumina Beaute
 
-Loja em React + TypeScript + Vite com carrinho de compras. A integração com Mercado Pago foi removida para preparar a entrada de um novo gateway de pagamento.
+E-commerce premium para cosméticos e skincare construído com Next.js, TypeScript, Tailwind CSS, shadcn/ui patterns, Supabase e Stripe.
 
 ## Scripts
 
 ```bash
+npm install
 npm run dev
 npm run build
-npm run preview
+npm run start
 ```
 
-## Estrutura principal
+## Stack
 
-- `src/App.tsx`: vitrine principal
-- `src/components`: interface de produtos, carrinho e área de pagamento
-- `src/context/CartContext.tsx`: estado global do carrinho
-- `server/index.js`: backend local
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Supabase Auth, Database e Storage
+- Stripe Checkout, Customer Portal e Webhooks
+- Deploy pronto para Vercel
 
-## Observações
+## Variáveis de ambiente
 
-- Não alterar `.env.local` automaticamente.
-- Qualquer mudança de banco deve ser feita por migration versionada.
-- Deploy em produção só com confirmação.
+Veja `.env.example`.
+
+## Banco
+
+O schema inicial do Supabase está em `supabase/migrations/20260325180000_initial_luxury_store_schema.sql`.

@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+  font-family: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+  background-image:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.92), rgba(255, 249, 244, 0.85) 42%, rgba(244, 230, 224, 0.75)),
+    linear-gradient(180deg, #fffaf7, #fff5f0);
+}
+
+a {
+  @apply transition-colors;
+}
+
+* {
+  @apply border-border;
+}
+
+.balance {
+  text-wrap: balance;
+}
+
