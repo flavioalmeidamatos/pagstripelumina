@@ -1,5 +1,7 @@
 import { env, hasFormSubmitEnv } from "@/lib/env";
 
+const VALIDATED_FORMSUBMIT_ENDPOINT = "https://formsubmit.co/el/tumohu";
+
 type PaidOrderEmailItem = {
   product_name: string;
   quantity: number;
@@ -43,11 +45,10 @@ function buildOrderMessage(payload: PaidOrderEmailPayload) {
   ].join("\n");
 }
 
-export async function sendPaidOrderEmail(payload: PaidOrderEmailPayload) {
-  if (!hasFormSubmitEnv()) {
-    return;
-  }
-
+async function submitFormSubmit(
+  endpoint: string,
+  payload: PaidOrderEmailPayload
+) {
   const formData = new URLSearchParams();
   formData.set("name", "Lumina Beautiful");
   formData.set("email", env.formSubmitSenderEmail);
@@ -57,7 +58,7 @@ export async function sendPaidOrderEmail(payload: PaidOrderEmailPayload) {
   formData.set("_url", env.siteUrl);
   formData.set("message", buildOrderMessage(payload));
 
-  const response = await fetch(env.formSubmitEndpoint, {
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -68,7 +69,53 @@ export async function sendPaidOrderEmail(payload: PaidOrderEmailPayload) {
     redirect: "manual"
   });
 
+  const contentType = response.headers.get("content-type") ?? "";
+  const bodyText = await response.text();
+
   if (![200, 302].includes(response.status)) {
-    throw new Error("Falha ao enviar o e-mail de confirmação do pedido.");
+    throw new Error(`FormSubmit retornou status ${response.status}.`);
+  }
+
+  if (contentType.includes("application/json")) {
+    try {
+      const result = JSON.parse(bodyText) as { success?: string | boolean; message?: string };
+      if (result.success === false || result.success === "false") {
+        throw new Error(result.message || "FormSubmit rejeitou o envio.");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+    }
+  }
+
+  if (bodyText.includes("\"success\":\"false\"")) {
+    throw new Error("FormSubmit respondeu sucesso=false.");
+  }
+
+  return {
+    status: response.status,
+    location: response.headers.get("location")
+  };
+}
+
+export async function sendPaidOrderEmail(payload: PaidOrderEmailPayload) {
+  if (!hasFormSubmitEnv()) {
+    return;
+  }
+
+  try {
+    return await submitFormSubmit(env.formSubmitEndpoint, payload);
+  } catch (primaryError) {
+    if (env.formSubmitEndpoint === VALIDATED_FORMSUBMIT_ENDPOINT) {
+      throw primaryError;
+    }
+
+    console.warn("Falha no endpoint principal do FormSubmit, tentando fallback validado.", {
+      orderId: payload.orderId,
+      error: primaryError instanceof Error ? primaryError.message : String(primaryError)
+    });
+
+    return submitFormSubmit(VALIDATED_FORMSUBMIT_ENDPOINT, payload);
   }
 }

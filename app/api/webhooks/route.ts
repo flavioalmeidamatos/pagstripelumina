@@ -85,8 +85,26 @@ export async function POST(request: Request) {
                 unit_price: Number(item.unit_price)
               })
             ) ?? []
-        }).catch((error) => {
-          console.error("Erro ao enviar confirmação por e-mail:", error);
+        })
+          .then((result) => {
+            console.info("Confirmação de pagamento enviada para o comprador.", {
+              orderId,
+              buyerEmail,
+              formSubmitStatus: result?.status,
+              redirectLocation: result?.location ?? null
+            });
+          })
+          .catch((error) => {
+            console.error("Erro ao enviar confirmação por e-mail:", {
+              orderId,
+              buyerEmail,
+              error: error instanceof Error ? error.message : String(error)
+            });
+          });
+      } else if (!buyerEmail) {
+        console.warn("Webhook pago sem e-mail do comprador no checkout.", {
+          orderId,
+          sessionId: session.id
         });
       }
     }
