@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     .filter(Boolean) as Array<{ id: string; quantity: number; product: (typeof products)[number] }>;
 
   if (!selectedItems.length) {
-    return NextResponse.json({ error: "Carrinho vazio." }, { status: 400 });
+    return NextResponse.json({ error: `Carrinho vazio (IDs enviados: ${payload.items.map(i => i.id).join(", ")}, Encontrados no BD: ${products.length})` }, { status: 400 });
   }
 
   const coupon = payload.couponCode ? await validateCoupon(payload.couponCode) : null;
