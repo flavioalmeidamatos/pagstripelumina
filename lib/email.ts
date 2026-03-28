@@ -48,24 +48,18 @@ export async function sendPaidOrderEmail(payload: PaidOrderEmailPayload) {
     return;
   }
 
-  const response = await fetch(
-    `https://formsubmit.co/ajax/${env.formSubmitAccessToken}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json"
-      },
-      body: JSON.stringify({
-        name: "Lumina Beautiful",
-        email: env.formSubmitSenderEmail,
-        _replyto: payload.buyerEmail,
-        _cc: payload.buyerEmail,
-        _subject: `Pedido pago #${payload.orderId}`,
-        message: buildOrderMessage(payload)
-      })
-    }
-  );
+  const formData = new FormData();
+  formData.set("name", "Lumina Beautiful");
+  formData.set("email", env.formSubmitSenderEmail);
+  formData.set("_replyto", payload.buyerEmail);
+  formData.set("_cc", payload.buyerEmail);
+  formData.set("_subject", `Pedido pago #${payload.orderId}`);
+  formData.set("message", buildOrderMessage(payload));
+
+  const response = await fetch(env.formSubmitEndpoint, {
+    method: "POST",
+    body: formData
+  });
 
   if (!response.ok) {
     throw new Error("Falha ao enviar o e-mail de confirmação do pedido.");

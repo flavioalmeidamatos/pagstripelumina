@@ -21,7 +21,9 @@ export const env = {
   siteUrl: getValue("NEXT_PUBLIC_SITE_URL") || "http://localhost:3000",
   whatsappNumber: getValue("NEXT_PUBLIC_WHATSAPP_NUMBER") || "5521988681799",
   formSubmitSenderEmail: getValue("FORMSUBMIT_SENDER_EMAIL"),
-  formSubmitAccessToken: getValue("FORMSUBMIT_ACCESS_TOKEN")
+  formSubmitAccessToken: getValue("FORMSUBMIT_ACCESS_TOKEN"),
+  formSubmitEndpoint:
+    getValue("FORMSUBMIT_ENDPOINT") || "https://formsubmit.co/el/tumohu"
 };
 
 export function hasSupabaseEnv() {
@@ -37,5 +39,7 @@ export function hasStripeEnv() {
 }
 
 export function hasFormSubmitEnv() {
-  return Boolean(env.formSubmitSenderEmail && env.formSubmitAccessToken);
+  return Boolean(
+    env.formSubmitSenderEmail && (env.formSubmitEndpoint || env.formSubmitAccessToken)
+  );
 }
