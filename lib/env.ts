@@ -19,7 +19,9 @@ export const env = {
   stripeSecretKey: getValue("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: getValue("STRIPE_WEBHOOK_SECRET_LIVE"),
   siteUrl: getValue("NEXT_PUBLIC_SITE_URL") || "http://localhost:3000",
-  whatsappNumber: getValue("NEXT_PUBLIC_WHATSAPP_NUMBER") || "5521988681799"
+  whatsappNumber: getValue("NEXT_PUBLIC_WHATSAPP_NUMBER") || "5521988681799",
+  formSubmitSenderEmail: getValue("FORMSUBMIT_SENDER_EMAIL"),
+  formSubmitAccessToken: getValue("FORMSUBMIT_ACCESS_TOKEN")
 };
 
 export function hasSupabaseEnv() {
@@ -32,4 +34,8 @@ export function hasServiceRole() {
 
 export function hasStripeEnv() {
   return Boolean(env.stripePublishableKey && env.stripeSecretKey);
+}
+
+export function hasFormSubmitEnv() {
+  return Boolean(env.formSubmitSenderEmail && env.formSubmitAccessToken);
 }

@@ -11,7 +11,7 @@ export function FilterBar({
   selectedCategory?: string;
   selectedBrand?: string;
 }) {
-  const brands = ["Lumina Beaute", "Maison Glow", "Atelier Essence"];
+  const brands = ["Lumina Beautiful", "Maison Glow", "Atelier Essence"];
 
   return (
     <div className="space-y-5 rounded-[32px] border border-border bg-white/80 p-6">
@@ -56,4 +56,3 @@ export function FilterBar({
     </div>
   );
 }
-

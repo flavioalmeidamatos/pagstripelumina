@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/cart/cart-provider";
@@ -63,7 +64,14 @@ export function CheckoutButton({
 
   return (
     <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isLoading}>
-      {isLoading ? "Redirecionando para o Stripe..." : "Finalizar com Stripe"}
+      {isLoading ? (
+        "Redirecionando para o pagamento..."
+      ) : (
+        <>
+          <Lock className="mr-2 h-4 w-4" />
+          Finalizar Pagamento Seguro
+        </>
+      )}
     </Button>
   );
 }

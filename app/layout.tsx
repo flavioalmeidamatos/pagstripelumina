@@ -8,15 +8,15 @@ import { getSiteSettings } from "@/lib/data/store";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://lumina-beaute.vercel.app"),
+  metadataBase: new URL("https://lumina-beaute-store.vercel.app"),
   title: {
-    default: "Lumina Beaute | E-commerce premium de cosméticos",
-    template: "%s | Lumina Beaute"
+    default: "Lumina Beautiful | E-commerce premium de cosméticos",
+    template: "%s | Lumina Beautiful"
   },
   description:
     "Loja premium de skincare, maquiagem, kits e perfumes com experiência elegante, checkout Stripe e gestão integrada com Supabase.",
   openGraph: {
-    title: "Lumina Beaute",
+    title: "Lumina Beautiful",
     description:
       "Compre cosméticos premium em uma experiência moderna, segura e mobile-first.",
     type: "website"
@@ -44,4 +44,3 @@ export default async function RootLayout({
     </html>
   );
 }
-

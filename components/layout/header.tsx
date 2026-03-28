@@ -29,7 +29,7 @@ export function Header() {
             </div>
             <div>
               <p className="text-lg font-semibold tracking-tight text-foreground">
-                Lumina Beaute
+                Lumina Beautiful
               </p>
               <p className="text-xs uppercase tracking-[0.22em] text-muted">
                 Premium Beauty Store
@@ -97,4 +97,3 @@ export function Header() {
     </>
   );
 }
-

@@ -14,7 +14,7 @@ export const fallbackProducts: Product[] = [
     subtitle: "Vitamina C encapsulada e peptídeos para glow uniforme.",
     description:
       "Sérum de acabamento sedoso com ativos antioxidantes, pensado para iluminar, suavizar poros e reforçar a barreira cutânea com toque premium.",
-    brand: "Lumina Beaute",
+    brand: "Lumina Beautiful",
     price: 189.9,
     compare_at_price: 229.9,
     rating: 4.9,
@@ -79,7 +79,7 @@ export const fallbackProducts: Product[] = [
     subtitle: "Limpeza, sérum e creme reparador para o ritual noturno.",
     description:
       "Kit promocional para rotina de renovação com três etapas complementares focadas em textura, elasticidade e hidratação intensa.",
-    brand: "Lumina Beaute",
+    brand: "Lumina Beautiful",
     price: 329.9,
     compare_at_price: 399.9,
     rating: 4.9,
@@ -140,4 +140,3 @@ export const defaultCoupons = [
     discountValue: 25
   }
 ];
-

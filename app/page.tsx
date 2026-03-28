@@ -41,9 +41,9 @@ export default async function HomePage() {
           <Card className="bg-white/80">
             <CardContent className="space-y-3">
               <p className="text-sm uppercase tracking-[0.18em] text-muted">Checkout</p>
-              <h3 className="text-2xl font-semibold">Pagamento seguro com Stripe</h3>
+              <h3 className="text-2xl font-semibold">Pagamentos Seguros</h3>
               <p className="text-sm leading-7 text-muted">
-                Sessões server-side, webhooks e portal do cliente já preparados.
+                Usando criptofogia mais segura nas suas transações
               </p>
             </CardContent>
           </Card>
@@ -71,4 +71,3 @@ export default async function HomePage() {
     </div>
   );
 }
-

@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { env } from "@/lib/env";
+import { sendPaidOrderEmail } from "@/lib/email";
 import { getStripe } from "@/lib/stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -37,6 +38,12 @@ export async function POST(request: Request) {
     const orderId = session.metadata?.order_id;
 
     if (orderId) {
+      const { data: order } = await supabase
+        .from("orders")
+        .select("id, status, total_amount, shipping_amount, discount_amount")
+        .eq("id", orderId)
+        .maybeSingle();
+
       await supabase
         .from("orders")
         .update({
@@ -55,6 +62,33 @@ export async function POST(request: Request) {
             typeof session.payment_intent === "string" ? session.payment_intent : null
         })
         .eq("order_id", orderId);
+
+      const buyerEmail = session.customer_details?.email ?? session.customer_email;
+
+      if (buyerEmail && order?.status !== "paid") {
+        const { data: items } = await supabase
+          .from("order_items")
+          .select("product_name, quantity, unit_price")
+          .eq("order_id", orderId);
+
+        await sendPaidOrderEmail({
+          buyerEmail,
+          orderId,
+          totalAmount: Number(order?.total_amount ?? 0),
+          shippingAmount: Number(order?.shipping_amount ?? 0),
+          discountAmount: Number(order?.discount_amount ?? 0),
+          items:
+            items?.map(
+              (item: { product_name: string; quantity: number; unit_price: number }) => ({
+                product_name: item.product_name,
+                quantity: item.quantity,
+                unit_price: Number(item.unit_price)
+              })
+            ) ?? []
+        }).catch((error) => {
+          console.error("Erro ao enviar confirmação por e-mail:", error);
+        });
+      }
     }
   }
 

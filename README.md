@@ -1,4 +1,4 @@
-# Lumina Beaute
+# Lumina Beautiful
 
 E-commerce premium para cosméticos e skincare construído com Next.js, TypeScript, Tailwind CSS, shadcn/ui patterns, Supabase e Stripe.
 

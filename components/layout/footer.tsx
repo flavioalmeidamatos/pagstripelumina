@@ -6,7 +6,7 @@ export function Footer() {
       <div className="container grid gap-8 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <p className="text-2xl font-semibold tracking-tight text-foreground">
-            Lumina Beaute
+            Lumina Beautiful
           </p>
           <p className="mt-3 max-w-md text-sm leading-7 text-muted">
             Curadoria premium de skincare, maquiagem, kits e perfumes com experiência
@@ -35,12 +35,9 @@ export function Footer() {
           </p>
           <div className="space-y-3 text-sm">
             <p>Atendimento com resposta humanizada.</p>
-            <p>Pagamentos seguros com Stripe.</p>
-            <p>Pedidos sincronizados com Supabase.</p>
           </div>
         </div>
       </div>
     </footer>
   );
 }
-
