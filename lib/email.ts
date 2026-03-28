@@ -49,14 +49,15 @@ async function submitFormSubmit(
   endpoint: string,
   payload: PaidOrderEmailPayload
 ) {
+  const message = buildOrderMessage(payload);
   const formData = new URLSearchParams();
   formData.set("name", "Lumina Beautiful");
-  formData.set("email", env.formSubmitSenderEmail);
+  formData.set("email", payload.buyerEmail);
+  formData.set("_autoresponse", "Obrigado por comprar conosco! O seu pedido foi confirmado.\n\n" + message);
   formData.set("_replyto", payload.buyerEmail);
-  formData.set("_cc", payload.buyerEmail);
-  formData.set("_subject", `Pedido pago #${payload.orderId}`);
+  formData.set("_subject", `Pedido pago #${payload.orderId} - Lumina Beautiful`);
   formData.set("_url", env.siteUrl);
-  formData.set("message", buildOrderMessage(payload));
+  formData.set("message", message);
 
   const response = await fetch(endpoint, {
     method: "POST",
