@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/cart/cart-provider";
+import { Button } from "@/components/ui/button";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export function CheckoutButton({
   couponCode
@@ -14,7 +16,37 @@ export function CheckoutButton({
 }) {
   const router = useRouter();
   const { items } = useCart();
+  const [requiresAuth, setRequiresAuth] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadAuthState() {
+      const supabase = createSupabaseBrowserClient();
+
+      if (!supabase) {
+        if (isMounted) {
+          setRequiresAuth(true);
+        }
+        return;
+      }
+
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
+
+      if (isMounted) {
+        setRequiresAuth(!user);
+      }
+    }
+
+    void loadAuthState();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   async function handleCheckout() {
     if (!items.length) {
@@ -22,6 +54,25 @@ export function CheckoutButton({
       return;
     }
 
+    const supabase = createSupabaseBrowserClient();
+
+    if (!supabase) {
+      toast.error("Entre ou crie sua conta para confirmar o pagamento.");
+      router.push("/login?next=/cart");
+      return;
+    }
+
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      toast.error("Entre ou crie sua conta para confirmar o pagamento.");
+      router.push("/login?next=/cart");
+      return;
+    }
+
+    setRequiresAuth(false);
     setIsLoading(true);
 
     try {
@@ -40,13 +91,15 @@ export function CheckoutButton({
 
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error("Entre na sua conta para finalizar o pedido.");
+          setRequiresAuth(true);
+          toast.error("Entre ou crie sua conta para confirmar o pagamento.");
           router.push("/login?next=/cart");
           return;
         }
 
         throw new Error(result.error || "Não foi possível iniciar o checkout.");
       }
+
       if (result.url) {
         window.location.href = result.url;
         return;
@@ -63,15 +116,25 @@ export function CheckoutButton({
   }
 
   return (
-    <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isLoading}>
-      {isLoading ? (
-        "Redirecionando para o pagamento..."
-      ) : (
-        <>
-          <Lock className="mr-2 h-4 w-4" />
-          Finalizar Pagamento Seguro
-        </>
+    <div className="space-y-2">
+      <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isLoading}>
+        {isLoading ? (
+          "Redirecionando para o pagamento..."
+        ) : (
+          <>
+            <Lock className="mr-2 h-4 w-4" />
+            Finalizar Pagamento Seguro
+          </>
+        )}
+      </Button>
+      {requiresAuth && (
+        <p className="text-center text-sm text-muted">
+          Entre ou crie sua conta para confirmar o pagamento.{" "}
+          <Link href="/login?next=/cart" className="font-medium text-foreground underline">
+            Fazer login ou cadastro
+          </Link>
+        </p>
       )}
-    </Button>
+    </div>
   );
 }

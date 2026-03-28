@@ -21,11 +21,7 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      env.stripeWebhookSecret
-    );
+    event = stripe.webhooks.constructEvent(body, signature, env.stripeWebhookSecret);
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Assinatura inválida." },
@@ -40,7 +36,7 @@ export async function POST(request: Request) {
     if (orderId) {
       const { data: order } = await supabase
         .from("orders")
-        .select("id, status, total_amount, shipping_amount, discount_amount")
+        .select("id, status, total_amount, shipping_amount, discount_amount, user_id")
         .eq("id", orderId)
         .maybeSingle();
 
@@ -63,7 +59,11 @@ export async function POST(request: Request) {
         })
         .eq("order_id", orderId);
 
-      const buyerEmail = session.customer_details?.email ?? session.customer_email;
+      const buyerEmail =
+        session.customer_details?.email ??
+        session.customer_email ??
+        session.metadata?.buyer_email ??
+        null;
 
       if (buyerEmail && order?.status !== "paid") {
         const { data: items } = await supabase
@@ -90,6 +90,11 @@ export async function POST(request: Request) {
             console.info("Confirmação de pagamento enviada para o comprador.", {
               orderId,
               buyerEmail,
+              emailSource: session.customer_details?.email
+                ? "customer_details"
+                : session.customer_email
+                  ? "customer_email"
+                  : "metadata",
               formSubmitStatus: result?.status,
               redirectLocation: result?.location ?? null
             });
@@ -104,7 +109,8 @@ export async function POST(request: Request) {
       } else if (!buyerEmail) {
         console.warn("Webhook pago sem e-mail do comprador no checkout.", {
           orderId,
-          sessionId: session.id
+          sessionId: session.id,
+          userId: order?.user_id ?? null
         });
       }
     }

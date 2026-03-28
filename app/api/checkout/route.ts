@@ -91,6 +91,10 @@ export async function POST(request: Request) {
       user_id: user.id,
       stripe_customer_id: stripeCustomerId
     });
+  } else if (user.email) {
+    await stripe.customers.update(stripeCustomerId, {
+      email: user.email
+    });
   }
 
   const { data: createdOrder, error: orderError } = await supabase
@@ -131,12 +135,14 @@ export async function POST(request: Request) {
     payment_intent_data: {
       metadata: {
         order_id: createdOrder.id,
-        user_id: user.id
+        user_id: user.id,
+        buyer_email: user.email ?? ""
       }
     },
     metadata: {
       order_id: createdOrder.id,
       user_id: user.id,
+      buyer_email: user.email ?? "",
       coupon_code: coupon?.code ?? ""
     },
     shipping_options: [
