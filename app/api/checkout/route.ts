@@ -127,7 +127,9 @@ export async function POST(request: Request) {
     }))
   );
 
-  const session = await stripe.checkout.sessions.create({
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card", "boleto", "pix"],
     customer: stripeCustomerId,
@@ -171,6 +173,10 @@ export async function POST(request: Request) {
       }
     }))
   });
+  } catch (err: any) {
+    console.error("Stripe error:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 400 });
+  }
 
   await supabase
     .from("orders")
