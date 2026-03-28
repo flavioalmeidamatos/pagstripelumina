@@ -24,7 +24,8 @@ export const env = {
   formSubmitAccessToken: getValue("FORMSUBMIT_ACCESS_TOKEN"),
   formSubmitEndpoint:
     getValue("FORMSUBMIT_ENDPOINT") || 
-    (getValue("FORMSUBMIT_ACCESS_TOKEN") ? `https://formsubmit.co/ajax/${getValue("FORMSUBMIT_ACCESS_TOKEN")}` : "https://formsubmit.co/el/tumohu")
+    (getValue("FORMSUBMIT_ACCESS_TOKEN") ? `https://formsubmit.co/ajax/${getValue("FORMSUBMIT_ACCESS_TOKEN")}` : "https://formsubmit.co/el/tumohu"),
+  resendApiKey: getValue("RESEND_API_KEY")
 };
 
 export function hasSupabaseEnv() {

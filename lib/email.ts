@@ -45,10 +45,74 @@ function buildOrderMessage(payload: PaidOrderEmailPayload) {
   ].join("\n");
 }
 
+function buildHtmlOrderMessage(payload: PaidOrderEmailPayload) {
+  const itemsHtml = payload.items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product_name}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrency(item.unit_price)}</td>
+      </tr>`
+    )
+    .join("");
+
+  return `
+    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+      <h2 style="color: #c9a050;">Lumina Beautiful - Pedido Confirmado!</h2>
+      <p>Olá, o seu pedido foi recebido e o pagamento foi confirmado com sucesso.</p>
+      
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr style="background: #f9f9f9;">
+          <th style="padding: 10px; text-align: left;">Produto</th>
+          <th style="padding: 10px; text-align: center;">Qtd</th>
+          <th style="padding: 10px; text-align: right;">Preço</th>
+        </tr>
+        ${itemsHtml}
+      </table>
+      
+      <div style="text-align: right; font-size: 14px; line-height: 1.6;">
+        <p><strong>Subtotal:</strong> ${formatCurrency(payload.totalAmount - payload.shippingAmount + payload.discountAmount)}</p>
+        <p><strong>Frete:</strong> ${formatCurrency(payload.shippingAmount)}</p>
+        <p><strong>Desconto:</strong> -${formatCurrency(payload.discountAmount)}</p>
+        <p style="font-size: 18px; color: #c9a050;"><strong>Total Pago: ${formatCurrency(payload.totalAmount)}</strong></p>
+      </div>
+      
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+      <p style="font-size: 12px; color: #666; text-align: center;">
+        Lumina Beautiful | Premium Beauty Store<br/>
+        ID do Pedido: ${payload.orderId}
+      </p>
+    </div>
+  `;
+}
+
 async function submitFormSubmit(
   endpoint: string,
   payload: PaidOrderEmailPayload
 ) {
+  if (env.resendApiKey) {
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${env.resendApiKey}`
+        },
+        body: JSON.stringify({
+          from: "Lumina Beautiful <onboarding@resend.dev>", // Or verified domain
+          to: [payload.buyerEmail],
+          subject: `Pedido pago #${payload.orderId} - Lumina Beautiful`,
+          html: buildHtmlOrderMessage(payload)
+        })
+      });
+      if (res.ok) return;
+      console.warn("Resend failed, falling back to FormSubmit", await res.text());
+    } catch (e) {
+      console.error("Resend error:", e);
+    }
+  }
+
   const message = buildOrderMessage(payload);
   const formData = new URLSearchParams();
   formData.set("name", "Lumina Beautiful");
@@ -101,7 +165,19 @@ async function submitFormSubmit(
 }
 
 export async function sendPaidOrderEmail(payload: PaidOrderEmailPayload) {
+  // If we have Resend, try it first as primary
+  if (env.resendApiKey) {
+    try {
+      const result = await submitFormSubmit(env.formSubmitEndpoint, payload);
+      return result;
+    } catch (e) {
+      console.warn("Emails via Resend/Primary failed, already tried in submitFormSubmit. Error logged.", e);
+    }
+  }
+
+  // Fallback to FormSubmit if env allows it
   if (!hasFormSubmitEnv()) {
+    console.warn("Nenhum serviço de e-mail (Resend ou FormSubmit) configurado.");
     return;
   }
 
@@ -112,11 +188,7 @@ export async function sendPaidOrderEmail(payload: PaidOrderEmailPayload) {
       throw primaryError;
     }
 
-    console.warn("Falha no endpoint principal do FormSubmit, tentando fallback validado.", {
-      orderId: payload.orderId,
-      error: primaryError instanceof Error ? primaryError.message : String(primaryError)
-    });
-
+    console.warn("Falha no endpoint principal do FormSubmit, tentando fallback validado.");
     return submitFormSubmit(VALIDATED_FORMSUBMIT_ENDPOINT, payload);
   }
 }
